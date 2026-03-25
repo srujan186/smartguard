@@ -52,8 +52,8 @@ st.markdown("""
 
 # ── Load guard (cached) ───────────────────────────────────────
 @st.cache_resource
-def load_guard(threshold=0.5):
-    return SmartGuard(threshold=threshold)
+def load_guard():
+    return SmartGuard()
 
 
 # ── Sidebar ───────────────────────────────────────────────────
@@ -71,11 +71,14 @@ with st.sidebar:
     )
     st.caption(f"Current threshold: **{threshold}**")
     st.divider()
+    use_llm = st.toggle("🧠 Use LLM Judge", value=False, help="Uses Groq API (Llama 3) to catch subtle jailbreaks and injections that slip past the ML model. Adds ~500ms latency but massively improves security.")
+    st.divider()
     st.markdown("**Attack Categories**")
     st.markdown("🔴 Jailbreak\n\n🟠 Prompt Injection\n\n🔥 Toxic/Harmful\n\n🟡 PII Extraction\n\n✅ Safe")
 
-guard = load_guard(threshold)
+guard = load_guard()
 guard.set_threshold(threshold)
+guard.use_llm_judge = use_llm
 
 # ── Main tabs ─────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs(["🔍 Live Classifier", "📊 Red-Team Results", "📈 Threshold Analysis"])
