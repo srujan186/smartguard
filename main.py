@@ -17,6 +17,7 @@ load_dotenv()
 
 sys.path.append(str(Path(__file__).parent))
 from guard import SmartGuard
+from output_guard import OutputGuard    
 
 # ── Groq client ───────────────────────────────────────────────
 from groq import Groq
@@ -32,6 +33,7 @@ app.add_middleware(
 
 # Singleton guard (loaded once at startup)
 guard: SmartGuard = None
+output_guard: OutputGuard = None
 groq_client: Groq = None
 
 LOG_PATH = Path(__file__).parent / "results" / "api_log.jsonl"
@@ -40,10 +42,11 @@ LOG_PATH.parent.mkdir(exist_ok=True)
 
 @app.on_event("startup")
 async def startup():
-    global guard, groq_client
+    global guard,output_guard, groq_client
     guard = SmartGuard(threshold=float(os.getenv("GUARD_THRESHOLD", "0.5")))
+    output_guard = OutputGuard(strict_mode=False)
     groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    print("✅ SmartGuard API ready")
+    print("✅ SmartGuard API ready (inut+output guard   )")
 
 
 # ── Request / Response models ─────────────────────────────────
@@ -71,7 +74,8 @@ class ChatResponse(BaseModel):
     llm_response: Optional[str] = None
     llm_latency_ms: Optional[float] = None
     blocked: bool
-
+    blocked_by: Optional[str] = None
+    output_check: Optional[str] = None
 
 # ── Helpers ───────────────────────────────────────────────────
 
@@ -137,6 +141,17 @@ def chat(req: ChatRequest):
         except Exception as e:
             llm_response = f"[LLM error: {str(e)}]"
 
+        # 3. Output guard
+        output_result = output_guard.validate(llm_response, req.prompt)
+        if output_result.verdict == "unsafe":
+            blocked = True
+            llm_response = f" Output blocked — {output_result.check_failed} detected in LLM response"
+            output_check_failed = output_result.check_failed
+        else:
+            output_check_failed = None
+    else:
+        output_check_failed = None
+
     log_event({
         "type": "chat",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -154,9 +169,16 @@ def chat(req: ChatRequest):
         category=result.category,
         confidence=result.confidence,
         guard_latency_ms=result.latency_ms,
-        llm_response=llm_response if not blocked else f"🚫 Blocked — {result.category} detected (confidence: {result.confidence})",
+        llm_response=llm_response if not blocked else (
+            f"🚫 Input blocked — {result.category} detected (confidence: {result.confidence})"
+            if result.verdict == "unsafe"
+            else llm_response
+        ),
         llm_latency_ms=llm_latency,
-        blocked=blocked
+        blocked=blocked,
+        blocked_by="input_guard" if result.verdict == "unsafe"
+                   else ("output_guard" if output_check_failed else None),
+        output_check=output_check_failed
     )
 
 
