@@ -15,9 +15,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-sys.path.append(str(Path(__file__).parent))
-from guard import SmartGuard
-from output_guard import OutputGuard    
+sys.path.append(str(Path(__file__).parent.parent))
+from classifier.guard import SmartGuard
+from classifier.output_guard import OutputGuard    
 
 # ── Groq client ───────────────────────────────────────────────
 from groq import Groq
