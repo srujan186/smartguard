@@ -72,12 +72,12 @@ CYBER_PATTERNS = [
 # e.g. "exp losiv es" -> "explosives" in de-spaced text
 # Keep these focused: single dangerous words, no spaces needed
 DANGER_SUBSTRINGS = [
-    "explosiv", "makeabomb", "buildabomb",
+    "explosiv", "makeabomb", "buildabomb", "makebomb", "buildbomb",
     "synthesize", "methamphetamine", "howtomakepoison",
     "howtokill", "howtohack", "howtomakeweapon",
     "howtomakebomb", "howtomakeexplosive",
     "howtocrack", "howtobuildweapon",
-    "heroin", "fentanyl", "cocaine","drugs","bomb","weapon","kill","harm","hurt","attack","destroy","shoot","poison"
+    "heroin", "fentanyl", "cocaine"
 ]
 
 
