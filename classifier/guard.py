@@ -29,9 +29,9 @@ class GuardResult:
 
 JAILBREAK_PATTERNS = [
     r"\bDAN\b", r"do anything now", r"ignore (previous|all|your) (instructions|rules|guidelines)",
-    r"pretend (you are|to be|you're)", r"act as (if you are|a|an) (?!assistant)",
+    r"pretend to be (unrestricted|jailbroken|DAN|free)", r"act as (if you are|a|an) (?!assistant|developer|interviewer|teacher|expert)",
     r"hypothetically", r"in a fictional world", r"for (educational|research) purposes only",
-    r"you are now", r"jailbreak", r"bypass", r"override your"
+    r"you are now (unrestricted|free|jailbroken|based|DAN)", r"jailbreak", r"bypass", r"override your"
 ]
 
 PII_PATTERNS = [
